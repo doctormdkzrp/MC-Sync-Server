@@ -26,16 +26,18 @@
 - [x] 14 单测（与同步 26 个合计 40 全绿）
 
 ## M4 管理台前端（Vue 3）
-- [ ] 四页（Mods / Config / 其它目录 / 回收站）+ 动作（上传/同步/重启/历史）
-- [ ] 组件库 + CodeMirror 编辑器；构建成静态文件由服务端发
+- [x] 四页（Mods / Config / 其它目录 / 回收站）+ 动作（上传/同步/重启/历史）+ 登录页
+- [x] Element Plus + CodeMirror；Vite 构建成静态文件由服务端发；真浏览器联调四页全通过
 
 ## M5 客户端 Java agent
 - [x] 迁入 `packages/agent`（独立 Gradle 工程，只依赖 minimal-json）
 - [x] 自更新壳 `packages/agent-bootstrap`（B 方案，断网兜底）+ 版本上报（`X-Agent-Version` / `?machine=`）
-- [ ] 在 PC 上构建（NAS 无 JDK）+ 真机冒烟
+- [x] 在 PC 上构建：agent 编译 + 67 测试全绿；自更新壳 javac 通过
+- [ ] 真机冒烟：把新 agent 壳挂到台式/笔记本跑一次真同步（笔记本离线，待开机）
 
 ## M6 部署与验收
 - [x] Dockerfile + compose + systemd unit + 配置样例（`deploy/`）
-- [ ] E3 上线（Node 20 + systemd）、实例目录授权、MCSManager API key
-- [ ] 中英文 README
-- [ ] 整轮验收：改 mod/config → 同步 → 重启 → 客户端更新，不碰 SSH/SFTP/MCS 面板
+- [x] E3 并排试跑（38081）：真机比对清单逐条一致；管理台后端+前端接口走通；实例目录授权（User=root）；MCSManager key 已接
+- [x] 中英文 README（README.md + README.en.md）
+- [ ] 重启按钮打通 MCSManager（daemon 打包版 API 路径未对上，先手动重启）
+- [ ] 整轮验收 + 切换到 38080（旧 Python 服务保留，一句话可回退）
