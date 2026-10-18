@@ -152,14 +152,23 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
     console.error(`启动失败：${e.message}`);
     return 1;
   }
+  const addr = app.server.address();
+  const boundPort = addr && typeof addr === "object" ? addr.port : port;
   console.log(
-    `mc_sync_server 已启动：http://${host}:${port}  仓库=${core.repoRoot}  协议=${2}`
+    `mc_sync_server 已启动：http://${host}:${boundPort}  仓库=${core.repoRoot}  协议=${2}`
   );
   return 0;
 }
 
-// 直接运行时入口
+// 直接运行时入口：成功启动后不要退出（服务本身撑着事件循环），只有失败才退。
 const entry = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : "";
 if (entry && import.meta.url === entry) {
-  main().then((code) => process.exit(code));
+  main()
+    .then((code) => {
+      if (code !== 0) process.exit(code);
+    })
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
 }

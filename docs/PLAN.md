@@ -10,6 +10,7 @@
 - [x] `packages/server`：config / core（manifest + submit + keyline 合并 + 快照 + 路径防护）/ server（Fastify 路由）
 - [x] 24 单测全绿（tsx --test）
 - [x] `tsc` 编译通过
+- [x] 本地端到端冒烟：起真进程打真接口，`/health` `/manifest` `/f/` 200/404/403 全对（顺带修掉「启动完就 process.exit」的入口 bug；补了 CLI 集成测试，现 25 单测全绿）
 - [ ] 真机冒烟比对（用真实 GTNH 仓库 + 真 agent，与旧 Python 服务逐条比对 /manifest、/f/、/submit）
 
 ## M3 管理台后端
