@@ -432,15 +432,10 @@ export function registerAdmin(app: FastifyInstance, deps: AdminDeps): void {
     });
 
     // ---- agent 包 ----
-    const agentDir = () => path.join(store.dataDir, "agent");
-    const agentMetaPath = () => path.join(agentDir(), "latest.json");
-    const agentJarPath = () => path.join(agentDir(), "latest.jar");
+    const agentJarPath = () => store.agentJarPath();
 
     scope.get("/api/agent", async () => {
-      const latest = fs.existsSync(agentMetaPath())
-        ? JSON.parse(fs.readFileSync(agentMetaPath(), "utf-8"))
-        : null;
-      return { latest, clients: store.clients() };
+      return { latest: store.agentMeta(), clients: store.clients() };
     });
 
     scope.post("/api/agent/upload", async (request, reply) => {
@@ -452,16 +447,7 @@ export function registerAdmin(app: FastifyInstance, deps: AdminDeps): void {
         else fields[part.fieldname] = String(part.value ?? "");
       }
       if (!buf) return reply.code(400).send({ error: "没收到 jar" });
-      fs.mkdirSync(agentDir(), { recursive: true });
-      const meta = {
-        version: fields.version ?? "0.0.0",
-        sha256: sha256(buf),
-        size: buf.length,
-        uploadedAt: new Date().toISOString(),
-      };
-      fs.writeFileSync(agentJarPath(), buf);
-      fs.writeFileSync(agentMetaPath(), JSON.stringify(meta, null, 2));
-      return { ok: true, latest: meta };
+      return { ok: true, latest: store.setAgent(buf, fields.version ?? "0.0.0") };
     });
 
     scope.get("/api/agent/download", async (_request, reply) => {

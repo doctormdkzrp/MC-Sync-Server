@@ -1,0 +1,17 @@
+services:
+  mc-sync-server:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: mc-sync-server:latest
+    container_name: mc-sync-server
+    restart: unless-stopped
+    ports:
+      - "38080:38080"
+    volumes:
+      - /etc/mc-sync:/config:ro          # config.json + submit.token + admin.token
+      - /var/lib/mc-sync:/data           # state.json / snapshots / admin（回收站·历史）
+      - /srv/mc-sync/repo:/repo          # 权威库（文件柜）
+      - /opt/mcsmanager/daemon/data/InstanceData/${MCS_INSTANCE_UUID}:/mcs-instance
+    environment:
+      - TZ=Asia/Shanghai

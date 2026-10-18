@@ -392,6 +392,27 @@ test("总览数字对得上", async () => {
   assert.equal(body.recycle.count, 0);
 });
 
+test("agent 公开端点免登录可取（客户端用）", async () => {
+  const ctx = await makeCtx();
+  const none = await ctx.app.inject({ method: "GET", url: "/agent/version" });
+  assert.equal(none.statusCode, 404);
+
+  const mp = multipart({ version: "0.3.0" }, { name: "a.jar", data: Buffer.from("JAR") });
+  await json(ctx, {
+    method: "POST",
+    url: "/api/agent/upload",
+    payload: mp.payload,
+    headers: { "content-type": mp.contentType },
+  });
+
+  const v = await ctx.app.inject({ method: "GET", url: "/agent/version" }); // 不带 cookie
+  assert.equal(v.statusCode, 200);
+  assert.equal(v.json().version, "0.3.0");
+  const jar = await ctx.app.inject({ method: "GET", url: "/agent/latest.jar" });
+  assert.equal(jar.statusCode, 200);
+  assert.equal(jar.rawPayload.toString(), "JAR");
+});
+
 test("readJarMeta 能从 mcmod.info 兜底（1.7.10 Forge 常见）", () => {
   const jar = makeJar({
     "mcmod.info": JSON.stringify([{ modid: "gtnh", name: "GT New Horizons", description: "困难整合包" }]),

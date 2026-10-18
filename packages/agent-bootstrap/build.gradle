@@ -1,0 +1,25 @@
+plugins {
+    id "java"
+}
+
+group = "com.mcsync"
+version = "0.3.0"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// 没有外部依赖，普通 jar 就够（不需要 shadow）。
+tasks.named("jar") {
+    archiveBaseName = "gtnh-sync-bootstrap"
+    archiveFileName = "gtnh-sync-bootstrap.jar"
+    archiveClassifier = ""
+    manifest {
+        attributes "Premain-Class": "com.mcsync.bootstrap.BootstrapAgent"
+        attributes "Agent-Class": "com.mcsync.bootstrap.BootstrapAgent"
+        attributes "Can-Redefine-Classes": "false"
+        attributes "Can-Retransform-Classes": "false"
+    }
+}

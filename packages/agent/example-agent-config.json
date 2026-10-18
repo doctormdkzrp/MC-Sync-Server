@@ -1,0 +1,25 @@
+{
+  "serverUrl": "http://HOST:PORT",
+  "instancePath": "X:\\path\\to\\PrismLauncher\\instances\\GT_New_Horizons",
+  "submitToken": "CHANGE_ME",
+  "maxSeconds": 300,
+  "connectTimeoutSeconds": 3,
+  "readTimeoutSeconds": 60,
+  "downloadThreads": 4,
+  "fullCheck": false,
+  "dryRun": false,
+  "logFile": "gtnh-sync-agent.log",
+  "stateFile": "gtnh-sync-state.json",
+  "ignoreGlobs": ["**/*.disabled", "**/serversync-*.jar", "**/*.part"],
+  "keepGlobs": ["mods/*.jar.disabled"],
+  "worldFolderMap": {
+    "GTNH_<world-uuid>": "GTNH_<world-uuid>"
+  },
+  "accounts": {
+    "Fgod": "Fgod",
+    "AltName": "alt"
+  },
+  "defaultProfile": "default",
+  "prismAccountsFile": "",
+  "usernameWaitSeconds": 15
+}

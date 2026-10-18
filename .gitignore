@@ -4,3 +4,7 @@ dist/
 .env
 .DS_Store
 packages/web/dist/
+build/
+.gradle/
+*.jar
+!gradle/wrapper/gradle-wrapper.jar

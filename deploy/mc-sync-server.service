@@ -1,0 +1,21 @@
+[Unit]
+Description=mc_sync_server — Minecraft modpack 同步与发布管理台
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mc-sync
+Group=mc-sync
+WorkingDirectory=/opt/mc-sync/packages/server
+ExecStart=/usr/bin/node /opt/mc-sync/packages/server/dist/server.js --config /etc/mc-sync/config.json
+Restart=always
+RestartSec=3
+# 让服务能读写权威库与实例目录
+ReadWritePaths=/srv/mc-sync /var/lib/mc-sync /opt/mcsmanager/daemon/data/InstanceData
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

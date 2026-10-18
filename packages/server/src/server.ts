@@ -120,6 +120,21 @@ export function buildApp(core: SyncCore, opts: BuildOpts = {}): FastifyInstance 
     }
   );
 
+  // 客户端（agent）取包用：公开端点，不需要管理台口令——包里没有秘密。
+  if (opts.store) {
+    app.get("/agent/version", async (_request, reply) => {
+      const meta = opts.store!.agentMeta();
+      if (!meta) return reply.code(404).send({ error: "还没有发布 agent 包" });
+      return meta;
+    });
+    app.get("/agent/latest.jar", async (_request, reply) => {
+      const p = opts.store!.agentJarPath();
+      if (!fs.existsSync(p)) return reply.code(404).send({ error: "还没有发布 agent 包" });
+      reply.header("Content-Type", "application/java-archive");
+      return reply.send(createReadStream(p));
+    });
+  }
+
   if (opts.store && opts.instance && opts.cfg) {
     registerAdmin(app, {
       cfg: opts.cfg,

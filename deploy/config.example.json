@@ -1,0 +1,34 @@
+{
+  "repo_root": "/srv/mc-sync/repo",
+  "state_file": "/var/lib/mc-sync/state.json",
+  "snapshot_dir": "/var/lib/mc-sync/snapshots",
+  "snapshot_keep": 20,
+  "listen": { "host": "0.0.0.0", "port": 38080 },
+  "submit_token_file": "/etc/mc-sync/submit.token",
+  "dirs": [
+    { "path": "mods", "tier": "authoritative", "owner": "both", "mode": "mirror", "exclude": ["**/*.disabled"] },
+    { "path": "config", "tier": "authoritative", "owner": "both", "mode": "mirror", "exclude": [] },
+    { "path": "resourcepacks", "tier": "authoritative", "owner": "both", "mode": "mirror", "exclude": [] },
+    { "path": "scripts", "tier": "authoritative", "owner": "both", "mode": "mirror", "exclude": [] },
+    { "path": "journeymap", "tier": "union", "owner": "client", "mode": "union", "exclude": [], "perAccount": true },
+    { "path": "schematics", "tier": "union", "owner": "client", "mode": "union", "exclude": [], "perAccount": true },
+    { "path": "options.txt", "tier": "union", "owner": "client", "mode": "line-union", "linePrefix": "key_", "perAccount": true }
+  ],
+  "admin": {
+    "enabled": true,
+    "token_file": "/etc/mc-sync/admin.token",
+    "data_dir": "/var/lib/mc-sync/admin",
+    "config_dirs": ["config"],
+    "web_dist": "",
+    "client_only_mods": []
+  },
+  "mcs": {
+    "baseUrl": "http://127.0.0.1:23333",
+    "apiKey": "",
+    "daemonId": "",
+    "instanceUuid": "",
+    "instanceModsDir": "",
+    "instanceConfigDir": "",
+    "keepFiles": []
+  }
+}

@@ -163,6 +163,34 @@ export class AdminStore {
     return this.meta.settings;
   }
 
+  // ---- agent 包（服务端也对外发，见公开端点 /agent/version、/agent/latest.jar）----
+  agentDir(): string {
+    return path.join(this.dataDir, "agent");
+  }
+
+  agentMeta(): { version: string; sha256: string; size: number; uploadedAt: string } | null {
+    const p = path.join(this.agentDir(), "latest.json");
+    if (!fs.existsSync(p)) return null;
+    return readJson(p, null as any);
+  }
+
+  agentJarPath(): string {
+    return path.join(this.agentDir(), "latest.jar");
+  }
+
+  setAgent(buf: Buffer, version: string): { version: string; sha256: string; size: number; uploadedAt: string } {
+    fs.mkdirSync(this.agentDir(), { recursive: true });
+    const meta = {
+      version: version || "0.0.0",
+      sha256: crypto.createHash("sha256").update(buf).digest("hex"),
+      size: buf.length,
+      uploadedAt: nowIso(),
+    };
+    fs.writeFileSync(this.agentJarPath(), buf);
+    atomicWrite(path.join(this.agentDir(), "latest.json"), JSON.stringify(meta, null, 2));
+    return meta;
+  }
+
   // ---- 回收站 ----
   recycleAdd(relPath: string, buf: Buffer, kind: "mod" | "file", note?: string, by?: string): RecycleItem {
     const id = newId();
