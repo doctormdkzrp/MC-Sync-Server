@@ -14,7 +14,7 @@ The server is the single source of truth; clients copy from it.
 
 ## Status
 
-Under development — see [`docs/PLAN.md`](docs/PLAN.md) for milestone state (it is the honest one).
+Works end-to-end: sync API, web console, client agent, and the self-updating shell — verified against a real 250-mod GTNH instance. See [`docs/PLAN.md`](docs/PLAN.md) for milestone state (it is the honest one).
 
 ## Layout
 
@@ -58,5 +58,5 @@ See [`deploy/`](deploy/) — Docker or plain systemd. Requires Node >= 20.
 
 GPL-3.0 — see [`LICENSE`](LICENSE).
 
-This project descends from [ServerSync](https://github.com/rheimus/ServerSync) (GPL-3.0): the client
+This project descends from [ServerSync](https://github.com/superzanti/ServerSync) (GPL-3.0): the client
 agent's package name and the sync protocol's shape come from there. Thanks to its authors.

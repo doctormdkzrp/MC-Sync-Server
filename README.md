@@ -109,7 +109,7 @@ cd packages/agent && gradle build
 
 **GPL-3.0**，见 [`LICENSE`](LICENSE)。
 
-本项目的客户端同步思路源自开源项目 [ServerSync](https://github.com/rheimus/ServerSync)（GPL-3.0）——
+本项目的客户端同步思路源自开源项目 [ServerSync](https://github.com/superzanti/ServerSync)（GPL-3.0）——
 客户端 agent 的包名与协议形态沿用了它，按 GPL-3.0 的传染性要求，本仓库同样以 GPL-3.0 发布。在此向原作者致谢。
 
 English README: [`README.en.md`](README.en.md)
