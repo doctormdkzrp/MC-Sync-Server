@@ -229,7 +229,7 @@ public final class StdinReplayStream extends InputStream {
         // "--username" alone on the previous line: this line is its value.
         if (expectUsernameLine && !line.startsWith("--")) {
             expectUsernameLine = false;
-            setUsernameIfPresent(firstToken(line));
+            setUsernameIfPresent(firstToken(line), line);
             return;
         }
         int idx = indexOfArgument(line, USERNAME_FLAG);
@@ -246,7 +246,7 @@ public final class StdinReplayStream extends InputStream {
             return;
         }
         expectUsernameLine = false;
-        setUsernameIfPresent(firstToken(rest));
+        setUsernameIfPresent(firstToken(rest), line);
     }
 
     /** Index of an argument token on a word boundary, or -1. */
@@ -277,10 +277,34 @@ public final class StdinReplayStream extends InputStream {
         return value.substring(0, end).trim();
     }
 
-    private void setUsernameIfPresent(String value) {
+    private void setUsernameIfPresent(String value, String sourceLine) {
         if (value != null && !value.isEmpty()) {
+            noteArgumentNames(sourceLine);
             setUsername(value);
         }
+    }
+
+    /**
+     * DEBUG：记录命中账号那一行里出现的参数名（只记名字、不记值，避免把令牌写进日志），
+     * 用于定位"启动器到底喂了什么进来"。
+     */
+    private void noteArgumentNames(String line) {
+        if (log == null || line == null) {
+            return;
+        }
+        StringBuilder flags = new StringBuilder();
+        int count = 0;
+        for (String token : line.split("\\s+")) {
+            if (count >= 24) {
+                break;
+            }
+            if (token.length() > 1 && token.charAt(0) == '-') {
+                int eq = token.indexOf('=');
+                flags.append(eq > 0 ? token.substring(0, eq) : token).append(' ');
+                count++;
+            }
+        }
+        log.log("DEBUG", "stdin 命中账号，本行参数名=[" + flags.toString().trim() + "] 行长=" + line.length());
     }
 
     private void setUsername(String value) {

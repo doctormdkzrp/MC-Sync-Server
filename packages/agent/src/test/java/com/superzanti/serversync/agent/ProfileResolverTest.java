@@ -58,6 +58,28 @@ public class ProfileResolverTest {
     }
 
     @Test
+    @DisplayName("mapExplicit answers only for configured accounts")
+    void mapExplicitOnlyMapped() {
+        AgentConfig config = new AgentConfig();
+        config.accounts.put("pxtwocat", "pxtwocat");
+        assertEquals("pxtwocat", ProfileResolver.mapExplicit(config, "pxtwocat"));
+        // 关键回归：启动器喂进来的不认识的账号名不能当档案名用。
+        // 真实启动时这个值可能是无意义的占位串（本机实测见过 "param"），
+        // 一旦当档案用，所有人的并集档就会串进同一个档案里。
+        assertNull(ProfileResolver.mapExplicit(config, "param"));
+        assertNull(ProfileResolver.mapExplicit(config, null));
+        assertNull(ProfileResolver.mapExplicit(null, "pxtwocat"));
+    }
+
+    @Test
+    @DisplayName("An invalid mapping value is not an explicit mapping")
+    void invalidMappingIsNotExplicit() {
+        AgentConfig config = new AgentConfig();
+        config.accounts.put("bad", "has space");
+        assertNull(ProfileResolver.mapExplicit(config, "bad"));
+    }
+
+    @Test
     @DisplayName("Profile name whitelist matches the server rules")
     void profileWhitelist() {
         assertTrue(ProfileResolver.isValidProfile("Fgod"));

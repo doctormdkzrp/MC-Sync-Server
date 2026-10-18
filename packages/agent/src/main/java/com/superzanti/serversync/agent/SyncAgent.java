@@ -250,17 +250,24 @@ public class SyncAgent {
 
     private static String resolveProfile(AgentConfig config, Path jarDir, Path instance,
                                          StdinReplayStream stdin, AgentLog log) {
-        String username;
+        String fromStdin = null;
         try {
             long waitMillis = Math.max(0, config.usernameWaitSeconds) * 1000L;
-            username = stdin == null ? null : stdin.awaitUsername(waitMillis);
+            fromStdin = stdin == null ? null : stdin.awaitUsername(waitMillis);
         } catch (Throwable t) {
-            username = null;
+            fromStdin = null;
         }
-        if (username != null && !username.isEmpty()) {
-            String profile = ProfileResolver.mapUsername(config, username);
-            log.info("profile=" + profile + " from=stdin user=" + username);
-            return profile;
+
+        // (1) 配置里 accounts 显式映射的账号最可信——对应关系是人手写的。
+        if (fromStdin != null && !fromStdin.isEmpty()) {
+            String mapped = ProfileResolver.mapExplicit(config, fromStdin);
+            if (mapped != null) {
+                log.info("profile=" + mapped + " from=accounts-map user=" + fromStdin);
+                return mapped;
+            }
+            // 没在映射里就别拿它当档案名：真实启动时这个值可能是个无意义的占位串
+            // （本机实测见过 "param"），一旦当档案用，所有人的并集档会串进同一个档案。
+            log.info("stdin 的账号 " + fromStdin + " 不在 accounts 映射里，改看 Prism 账号库");
         }
 
         Path accountsFile = null;
@@ -275,10 +282,21 @@ public class SyncAgent {
         }
         String active = ProfileResolver.readActiveUsername(accountsFile);
         if (active != null && !active.isEmpty()) {
-            String profile = ProfileResolver.mapUsername(config, active);
+            String mapped = ProfileResolver.mapExplicit(config, active);
+            String profile = mapped != null
+                ? mapped
+                : (ProfileResolver.isValidProfile(active)
+                    ? active
+                    : ProfileResolver.mapUsername(config, null));
             log.info("profile=" + profile + " from=accounts.json user=" + active
                 + " file=" + accountsFile);
             return profile;
+        }
+
+        // (3) 账号库也没有（非 Prism 启动器）：退回 stdin 那个原始账号名。
+        if (fromStdin != null && !fromStdin.isEmpty() && ProfileResolver.isValidProfile(fromStdin)) {
+            log.info("profile=" + fromStdin + " from=stdin-raw user=" + fromStdin);
+            return fromStdin;
         }
 
         String profile = ProfileResolver.mapUsername(config, null);

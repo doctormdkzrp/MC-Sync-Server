@@ -27,6 +27,26 @@ public final class ProfileResolver {
     }
 
     /**
+     * Explicit accounts-map lookup only. Returns null when the username has no
+     * mapping, so callers can distinguish "the user configured this" from
+     * "nothing matched and we fell through".
+     */
+    public static String mapExplicit(AgentConfig config, String username) {
+        if (config == null || config.accounts == null || username == null || username.isEmpty()) {
+            return null;
+        }
+        try {
+            String mapped = config.accounts.get(username);
+            if (mapped != null && !mapped.isEmpty()) {
+                return isValidProfile(mapped) ? mapped : null;
+            }
+        } catch (Throwable ignored) {
+            // Treat any lookup error as "no mapping".
+        }
+        return null;
+    }
+
+    /**
      * Resolve the profile for a username: explicit mapping first, then the
      * username itself when it is a legal profile, then the configured fallback.
      */

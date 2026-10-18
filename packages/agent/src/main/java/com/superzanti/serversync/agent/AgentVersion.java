@@ -7,7 +7,7 @@ package com.superzanti.serversync.agent;
  * 管理台据此显示「哪台机器还在跑旧版」。</p>
  */
 public final class AgentVersion {
-    public static final String VERSION = "0.3.0";
+    public static final String VERSION = "0.3.1";
 
     private AgentVersion() {
     }
