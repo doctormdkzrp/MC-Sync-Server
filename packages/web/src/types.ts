@@ -95,6 +95,8 @@ export interface SyncPreview {
   updates: string[]
   removes: string[]
   unchanged: number
+  configSkippedAdds?: string[]
+  configSkippedRemoves?: string[]
 }
 
 export interface InstanceStatus {

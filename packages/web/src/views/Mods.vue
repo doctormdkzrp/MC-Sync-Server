@@ -175,6 +175,20 @@
             <li v-else>（无）</li>
           </ul>
         </div>
+        <div
+          class="field"
+          v-if="sync.preview.configSkippedAdds?.length || sync.preview.configSkippedRemoves?.length"
+        >
+          <label>config 只覆盖、不增删（仓库 config 是客户端全量，不能整树塞给服务端）</label>
+          <ul class="plain">
+            <li v-if="sync.preview.configSkippedAdds?.length" class="mono">
+              服务端没有的 {{ sync.preview.configSkippedAdds.length }} 个 config 文件<b>不推</b>（多为客户端专属）
+            </li>
+            <li v-if="sync.preview.configSkippedRemoves?.length" class="mono">
+              服务端独有的 {{ sync.preview.configSkippedRemoves.length }} 个 config 文件<b>不动</b>（如 JourneyMapServer、.bak 备份）
+            </li>
+          </ul>
+        </div>
         <div class="warn">
           删掉的东西都进回收站、能一键恢复；服务端 mod 改动<b>要重启实例才生效</b>，执行完我会问你要不要顺手重启。
         </div>
