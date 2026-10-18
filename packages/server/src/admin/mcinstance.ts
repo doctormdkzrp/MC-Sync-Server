@@ -25,6 +25,10 @@ export interface SyncPlan {
   updates: string[];
   removes: string[];
   unchanged: number;
+  /** config：服务端没有的（不推，只报告） */
+  configSkippedAdds?: string[];
+  /** config：服务端独有的（不动，只报告） */
+  configSkippedRemoves?: string[];
 }
 
 function sha256File(p: string): string {
@@ -137,6 +141,8 @@ export class McInstance {
     const adds: string[] = [];
     const updates: string[] = [];
     const removes: string[] = [];
+    const configSkippedAdds: string[] = [];
+    const configSkippedRemoves: string[] = [];
     let unchanged = 0;
 
     // ---- mods：来源筛类型 ----
@@ -161,25 +167,40 @@ export class McInstance {
       }
     }
 
-    // ---- config：全量 ----
+    // ---- config：只覆盖「两边都有的」，不新增不删除 ----
+    // 仓库 config 是客户端全量（上万文件），服务端 config 是它的子集 + 若干服务端专属文件；
+    // 整树镜像会把客户端专属塞进服务端、删掉服务端专属（JourneyMapServer/.bak 等），危险。
     for (const rel of listFiles(this.configSrcDir())) {
       if (!targetConfig) continue;
       const src = path.join(this.configSrcDir(), ...rel.split("/"));
       const dst = path.join(targetConfig, ...rel.split("/"));
-      if (!fs.existsSync(dst)) adds.push(`config/${rel}`);
-      else if (!sameFile(src, dst)) updates.push(`config/${rel}`);
+      if (!fs.existsSync(dst)) {
+        configSkippedAdds.push(`config/${rel}`);
+        continue;
+      }
+      if (!sameFile(src, dst)) updates.push(`config/${rel}`);
       else unchanged++;
     }
     if (targetConfig && fs.existsSync(targetConfig)) {
       for (const rel of listFiles(targetConfig)) {
-        if (!fs.existsSync(path.join(this.configSrcDir(), ...rel.split("/")))) removes.push(`config/${rel}`);
+        if (!fs.existsSync(path.join(this.configSrcDir(), ...rel.split("/")))) {
+          configSkippedRemoves.push(`config/${rel}`);
+        }
       }
     }
 
     adds.sort();
     updates.sort();
     removes.sort();
-    return { target: { modsDir: targetMods, configDir: targetConfig }, adds, updates, removes, unchanged };
+    return {
+      target: { modsDir: targetMods, configDir: targetConfig },
+      adds,
+      updates,
+      removes,
+      unchanged,
+      configSkippedAdds,
+      configSkippedRemoves,
+    };
   }
 
   /** 执行同步：复制新增/更新，删掉多余的。被覆盖/删除的实例文件先留底。 */

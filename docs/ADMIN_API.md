@@ -73,13 +73,14 @@
 | 方法 | 路径 | 请求 | 回应 |
 |---|---|---|---|
 | POST | `/api/manifest/refresh` | — | `{"ok":true,"version":N}` |
-| GET | `/api/sync/preview` | — | `{"target":{"modsDir":..,"configDir":..},"adds":["x.jar"],"updates":["y.cfg"],"removes":["z.jar"],"unchanged":N}` |
+| GET | `/api/sync/preview` | — | `{"target":{...},"adds":[...],"updates":[...],"removes":[...],"unchanged":N,"configSkippedAdds":[...],"configSkippedRemoves":[...]}` |
 | POST | `/api/sync/apply` | — | `{"ok":true,"added":N,"updated":N,"removed":N,"version":N}` |
 | GET | `/api/instance/status` | — | `{"running":true,"instance":"...","mcVersion":"..."}` |
 | POST | `/api/instance/restart` | — | `{"ok":true,"message":"..."}` |
 
-- `sync/apply` 只处理「两边都要 + 服务端也要」的 mod，以及全部 `config/`；被覆盖/删除的先留历史/回收站。
-- `instance/*` 走 MCSManager API（配置里给 `mcs.*`）。
+- `sync/apply` 处理「两边都要 + 服务端也要」的 mod（新增/覆盖/删除），以及 `config/` 里**两边都有的文件**（只覆盖，不新增不删除）。
+- 仓库 `config/` 是客户端全量（上万文件），服务端 `config/` 是它的子集 + 若干服务端专属文件；所以 config 不整树镜像：服务端没有的进 `configSkippedAdds`（不推），服务端独有的进 `configSkippedRemoves`（不动）。
+- 被覆盖/删除的实例文件先留底（`mcs-backup/`）。
 
 ## Agent 包
 

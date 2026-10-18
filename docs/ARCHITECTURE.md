@@ -30,6 +30,10 @@ snapshots/                          # 每轮上交的 tar.gz + manifest.json（k
 | GET | `/manifest?profile=<档案>&refresh=1` | 清单 JSON（缓存，`refresh` 强制重扫） |
 | GET | `/f/<path>` | 返回仓库内该相对路径的原始字节（仅清单里出现过的路径） |
 | POST | `/submit?profile=<档案>` | 上交 tar.gz，头 `X-Sync-Token` |
+| GET | `/agent/version` | 最新 agent 包信息 `{version,sha256,size,uploadedAt}`（公开，自更新壳读） |
+| GET | `/agent/latest.jar` | 最新 agent 包字节（公开） |
+
+拉清单时客户端会带 `X-Agent-Version` 头和 `&machine=<主机名>`，管理台据此显示「哪台机器还在跑旧版」。
 
 ### 清单（manifest）结构
 
@@ -70,19 +74,14 @@ snapshots/                          # 每轮上交的 tar.gz + manifest.json（k
 - `/f/` 只服务清单里出现过的路径，否则 404（不暴露存在性）；路径穿越 403/404。
 - 面板不暴露公网，仅 Tailscale/内网可达。
 
-## 四、管理台（待实现，接口规划）
+## 四、管理台
 
-后端 API（`/api/…`，cookie 认证）：
-- `GET /api/mods` / `POST /api/mods` / `PATCH /api/mods/:id` / `DELETE /api/mods/:id`（软删→回收站）
-- `POST /api/upload`（multipart，mods 自动读 jar 元数据 / 其它目录直传）
-- `GET /api/config/*` / `PUT /api/config/*`（在线编辑，改前留旧版）
-- `GET /api/recycle` / `POST /api/recycle/:id/restore` / `DELETE /api/recycle/:id`
-- `GET /api/history?path=…` / `POST /api/history/:id/restore`（版本历史）
-- `POST /api/sync-to-server`（mods+config 同步到 MC 实例目录，先返回 diff，确认后执行）
-- `POST /api/restart-instance`（调 MCSManager API）
-- `GET/POST /api/agent-package`（agent jar 版本 + 客户端版本上报）
+已实现。**接口清单以 `docs/ADMIN_API.md` 为准**（最全；改接口先改它）。要点：
 
-前端页面：Mods / Config / 其它目录 / 回收站，见 `SPEC.md`。
+- 认证：`POST /api/login` → cookie `mcsync_admin`；除 `/api/login`、`/api/session` 外都要带。
+- 出错统一 `{"error":"…"}` + 400（参数）/ 401（未登录）/ 404（找不到）/ 409（冲突）。
+- 「同步到 MC 服务端」分两步：先 `POST /api/sync-to-server`（mode=preview）拿 diff，人确认后再带 `confirm` 执行。
+- 前端源码 `packages/web`（Vue 3 + Vite），构建产物 `dist/` 由同一个服务静态发；所以服务地址 = 管理台地址。
 
 ## 五、配置（config.json）
 

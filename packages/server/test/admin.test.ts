@@ -316,34 +316,42 @@ test("回收站保留策略（按大小清最老）", async () => {
   assert.equal(rc.body.items.length, 0); // 超上限，被清
 });
 
-test("同步到服务端：预览 + 执行（新增/覆盖/删除）+ 纯客户端不下发", async () => {
+test("同步到服务端：预览 + 执行 + 纯客户端不下发 + config 只覆盖不增删", async () => {
   const ctx = await makeCtx();
   ctx.write("mods/AAA-1.0.jar", "aaa");
   ctx.write("mods/clientonly-1.0.jar", "cl");
-  ctx.write("config/a.cfg", "cfg1");
-  // 实例侧：已存在一个旧 AAA（会被覆盖），多一个 stale.jar（会被删）
+  ctx.write("config/a.cfg", "cfg1"); // 服务端没有 → 不推（进 configSkippedAdds）
+  ctx.write("config/shared.cfg", "cfgnew"); // 两边都有、内容不同 → 覆盖
+  // 实例侧：旧 AAA（覆盖）、多余 stale.jar（删）、shared.cfg（覆盖）、server-only.cfg（不动）
   fs.writeFileSync(path.join(ctx.tmp, "mcs-mods", "AAA-1.0.jar"), "old");
   fs.writeFileSync(path.join(ctx.tmp, "mcs-mods", "stale.jar"), "stale");
+  fs.writeFileSync(path.join(ctx.tmp, "mcs-config", "shared.cfg"), "cfgold");
+  fs.writeFileSync(path.join(ctx.tmp, "mcs-config", "server-only.cfg"), "srv");
 
   const prev = await json(ctx, { method: "GET", url: "/api/sync/preview" });
   assert.equal(prev.status, 200);
   assert.ok(prev.body.updates.includes("AAA-1.0.jar"));
+  assert.ok(prev.body.updates.includes("config/shared.cfg"));
   assert.ok(prev.body.removes.includes("stale.jar"));
-  assert.ok(prev.body.adds.includes("config/a.cfg"));
   assert.ok(!prev.body.adds.includes("clientonly-1.0.jar")); // 纯客户端不下发
+  assert.ok(prev.body.configSkippedAdds.includes("config/a.cfg")); // 服务端没有的 config：不推
+  assert.ok(prev.body.configSkippedRemoves.includes("config/server-only.cfg")); // 服务端独有的：不动
+  assert.ok(!prev.body.adds.includes("config/a.cfg"));
 
   const app2 = await json(ctx, { method: "POST", url: "/api/sync/apply" });
   assert.equal(app2.status, 200);
-  assert.equal(app2.body.updated, 1);
+  assert.equal(app2.body.updated, 2);
   assert.equal(app2.body.removed, 1);
   assert.equal(fs.readFileSync(path.join(ctx.tmp, "mcs-mods", "AAA-1.0.jar"), "utf-8"), "aaa");
   assert.ok(!fs.existsSync(path.join(ctx.tmp, "mcs-mods", "stale.jar")));
   assert.ok(!fs.existsSync(path.join(ctx.tmp, "mcs-mods", "clientonly-1.0.jar")));
-  assert.equal(fs.readFileSync(path.join(ctx.tmp, "mcs-config", "a.cfg"), "utf-8"), "cfg1");
+  assert.equal(fs.readFileSync(path.join(ctx.tmp, "mcs-config", "shared.cfg"), "utf-8"), "cfgnew");
+  assert.ok(!fs.existsSync(path.join(ctx.tmp, "mcs-config", "a.cfg"))); // 没被塞进去
+  assert.ok(fs.existsSync(path.join(ctx.tmp, "mcs-config", "server-only.cfg"))); // 没被删
 
-  // 被覆盖/删除的实例文件应该留了底
+  // 被覆盖/删除的实例文件应该留了底（AAA、stale、shared.cfg 三个）
   const backups = fs.readdirSync(path.join(ctx.tmp, "admin", "mcs-backup")).filter((n) => n.endsWith(".blob"));
-  assert.equal(backups.length, 2);
+  assert.equal(backups.length, 3);
 });
 
 test("清单刷新只动版本缓存、不动数据", async () => {

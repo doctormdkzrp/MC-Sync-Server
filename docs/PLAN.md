@@ -14,27 +14,28 @@
 - [ ] 真机冒烟比对（用真实 GTNH 仓库 + 真 agent，与旧 Python 服务逐条比对 /manifest、/f/、/submit）
 
 ## M3 管理台后端
-- [ ] 元数据存储（mods 字段；预标 28 个纯客户端 mod）
-- [ ] 上传（mods 自动读 jar 名字/简介）、删除→回收站、类型三档
-- [ ] 刷新清单、同步到 MC 服务端（mods+config，先 diff）
-- [ ] config 在线编辑（留旧版）
-- [ ] 其它目录浏览/上传/删除（大小/时间/谁动的）
-- [ ] 回收站（按时间 + 按大小配置化）、版本历史/还原
-- [ ] agent 包管理（B 方案：自更新壳）+ 客户端版本上报
-- [ ] 口令登录（cookie）
-- [ ] 重启 MC 服务端实例（MCSManager API）
+- [x] 元数据存储（mods 字段；预标 28 个纯客户端 mod 走 `admin.client_only_mods`）
+- [x] 上传（mods 自动读 jar 名字/简介，读 mcmod.info / fabric.mod.json）、删除→回收站、类型三档
+- [x] 刷新清单、同步到 MC 服务端（mods+config，先给 diff 再执行；复制保留时间戳）
+- [x] config 在线编辑（留旧版可还原）
+- [x] 其它目录浏览/上传/删除
+- [x] 回收站（按时间 + 按大小配置化）、版本历史/还原
+- [x] agent 包管理（上传/版本/公开取包端点）+ 客户端版本上报
+- [x] 口令登录（cookie）
+- [x] 重启 MC 服务端实例（MCSManager API）
+- [x] 14 单测（与同步 26 个合计 40 全绿）
 
 ## M4 管理台前端（Vue 3）
 - [ ] 四页（Mods / Config / 其它目录 / 回收站）+ 动作（上传/同步/重启/历史）
 - [ ] 组件库 + CodeMirror 编辑器；构建成静态文件由服务端发
 
 ## M5 客户端 Java agent
-- [ ] 迁入 `packages/agent`（从旧仓库 build-agent）
-- [ ] 自更新壳（B 方案，断网兜底）+ 版本上报
-- [ ] 构建 + 真机冒烟
+- [x] 迁入 `packages/agent`（独立 Gradle 工程，只依赖 minimal-json）
+- [x] 自更新壳 `packages/agent-bootstrap`（B 方案，断网兜底）+ 版本上报（`X-Agent-Version` / `?machine=`）
+- [ ] 在 PC 上构建（NAS 无 JDK）+ 真机冒烟
 
 ## M6 部署与验收
-- [ ] Dockerfile + compose + 部署脚本
-- [ ] E3 上线（Node 20 + systemd）、装正式 Node、实例目录授权、MCSManager API key
+- [x] Dockerfile + compose + systemd unit + 配置样例（`deploy/`）
+- [ ] E3 上线（Node 20 + systemd）、实例目录授权、MCSManager API key
 - [ ] 中英文 README
 - [ ] 整轮验收：改 mod/config → 同步 → 重启 → 客户端更新，不碰 SSH/SFTP/MCS 面板
