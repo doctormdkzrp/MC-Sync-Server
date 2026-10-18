@@ -1,0 +1,24 @@
+{
+  "name": "@mc-sync/server",
+  "version": "0.3.0",
+  "description": "mc_sync_server 服务端：客户端同步接口 + 发布管理台（Node + TypeScript + Fastify）",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "minimatch": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
