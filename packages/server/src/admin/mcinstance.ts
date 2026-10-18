@@ -237,10 +237,17 @@ export class McInstance {
     const m = this.mcs;
     if (!m.baseUrl || !m.apiKey) throw new Error("未配置 MCSManager（mcs.baseUrl / mcs.apiKey）");
     const url = new URL(apiPath, m.baseUrl);
-    url.searchParams.set("apikey", m.apiKey);
+    url.searchParams.set("apikey", m.apiKey); // MCSManager 要求：apikey 必须走 URL 参数
     if (m.daemonId) url.searchParams.set("daemonId", m.daemonId);
     if (m.instanceUuid) url.searchParams.set("uuid", m.instanceUuid);
-    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(url, {
+      // 这两个头是 MCSManager 面板接口的硬要求，缺了直接 403
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      signal: AbortSignal.timeout(10000),
+    });
     const text = await res.text();
     try {
       return JSON.parse(text);
@@ -252,8 +259,9 @@ export class McInstance {
   async status(): Promise<{ running: boolean; raw?: any }> {
     try {
       const data = await this.mcsGet("/api/instance");
-      const st = data?.data?.status ?? data?.data?.info?.status;
-      return { running: st === 1 || st === 2, raw: data?.data ?? data };
+      // MCSManager 实例状态：0=停止 1=启动中 2=停止中 3=运行中
+      const st = data?.data?.status;
+      return { running: st === 3 || st === 1, raw: data?.data ?? data };
     } catch (e: any) {
       return { running: false, raw: { error: e.message } };
     }
@@ -264,8 +272,16 @@ export class McInstance {
     if (!m.instanceModsDir && !m.baseUrl) return { ok: false, message: "未配置 MCSManager，跳过重启（改了 mod/config 需手动重启实例才生效）" };
     try {
       const data = await this.mcsGet("/api/protected_instance/restart");
-      const ok = data?.status === 200 || data?.status === 0 || !!data?.data;
-      return { ok, message: ok ? "已下发重启指令" : `重启返回异常：${JSON.stringify(data).slice(0, 200)}` };
+      // MCSManager 成功返回 {status:200,data:true}；失败 data 是个非空中文串（如"目标实例不存在！"），
+      // 所以只认 status===200，不能拿 data 非空当成功。
+      const ok = data?.status === 200;
+      const detail = typeof data?.data === "string" ? data.data : "";
+      return {
+        ok,
+        message: ok
+          ? "已下发重启指令（实例重启大约 1~2 分钟）"
+          : `重启失败：${detail || JSON.stringify(data).slice(0, 200)}`,
+      };
     } catch (e: any) {
       return { ok: false, message: `重启失败：${e.message}` };
     }

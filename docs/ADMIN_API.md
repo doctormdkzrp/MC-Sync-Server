@@ -82,6 +82,17 @@
 - 仓库 `config/` 是客户端全量（上万文件），服务端 `config/` 是它的子集 + 若干服务端专属文件；所以 config 不整树镜像：服务端没有的进 `configSkippedAdds`（不推），服务端独有的进 `configSkippedRemoves`（不动）。
 - 被覆盖/删除的实例文件先留底（`mcs-backup/`）。
 
+### 重启按钮怎么接 MCSManager
+
+`instance/*` 走 MCSManager **面板**的 API（不是 daemon 的端口）：
+
+1. 面板里开 API 接口（系统配置 `enableApiKey` = true），给账号生成一把 API Key；
+2. 配置里填 `mcs.baseUrl` = 面板地址（如 `http://127.0.0.1`）、`mcs.apiKey` = 那把 Key、`mcs.daemonId` = 节点 ID、`mcs.instanceUuid` = 实例 ID。
+
+实现要求（少一个就 403）：`apikey` **必须走 URL 查询参数**，并且请求头必须带
+`X-Requested-With: XMLHttpRequest` 和 `Content-Type: application/json; charset=utf-8`。
+成功返回 `{"status":200,"data":true}`；失败时 `data` 是个中文错误串——**别拿 `data` 非空当成功**，只认 `status===200`。
+
 ## Agent 包
 
 | 方法 | 路径 | 请求 | 回应 |

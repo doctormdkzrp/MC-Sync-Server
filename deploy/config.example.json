@@ -23,7 +23,7 @@
     "client_only_mods": []
   },
   "mcs": {
-    "baseUrl": "http://127.0.0.1:23333",
+    "baseUrl": "http://127.0.0.1",
     "apiKey": "",
     "daemonId": "",
     "instanceUuid": "",
